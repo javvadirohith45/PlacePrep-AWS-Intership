@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Admin Control Center — PlacePrep{% endblock %}
+{% block content %}
+<div class="container admin-shell">
+  <div class="page-head admin-head">
+    <div>
+      <span class="eyebrow">ADMIN CONTROL CENTER</span>
+      <h1>Full control of PlacePrep.</h1>
+      <p class="muted">Manage the content that powers your entire placement portal directly from localhost.</p>
+    </div>
+    <div class="admin-badge"><i data-lucide="shield-check"></i> Administrator</div>
+  </div>
+
+  <div class="stats admin-stats">
+    <div class="kpi"><small>Questions</small><strong>{{ questions }}</strong><a href="{{ url_for('admin.manage',resource='questions') }}">Manage →</a></div>
+    <div class="kpi"><small>Mock Tests</small><strong>{{ tests }}</strong><a href="{{ url_for('admin.manage',resource='tests') }}">Manage →</a></div>
+    <div class="kpi"><small>Companies</small><strong>{{ companies }}</strong><a href="{{ url_for('admin.manage',resource='companies') }}">Manage →</a></div>
+    <div class="kpi"><small>Coding Problems</small><strong>{{ coding }}</strong><a href="{{ url_for('admin.manage',resource='coding-problems') }}">Manage →</a></div>
+    <div class="kpi"><small>DSA Problems</small><strong>{{ dsa }}</strong><a href="{{ url_for('admin.manage',resource='dsa-problems') }}">Manage →</a></div>
+    <div class="kpi"><small>Interview Questions</small><strong>{{ interviews }}</strong><a href="{{ url_for('admin.manage',resource='interview-questions') }}">Manage →</a></div>
+  </div>
+
+  {% for group_name, keys in groups %}
+  <section class="admin-section">
+    <div class="section-title"><div><span class="eyebrow">{{ group_name }}</span><h2>Manage {{ group_name }}</h2></div></div>
+    <div class="admin-resource-grid">
+      {% for key in keys %}{% set r=resources[key] %}
+      <a class="admin-resource-card" href="{{ url_for('admin.manage',resource=key) }}">
+        <span class="admin-resource-icon"><i data-lucide="{{ r.icon }}"></i></span>
+        <span><strong>{{ r.title }}</strong><small>Add, edit and delete {{ r.title|lower }}.</small></span>
+        <i class="resource-arrow" data-lucide="arrow-up-right"></i>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+
+  <section class="admin-warning card">
+    <i data-lucide="triangle-alert"></i>
+    <div><strong>Admin means real database changes.</strong><p class="muted">Changes made here are applied to your local <code>placeprep.db</code>. Keep a backup before large deletions.</p></div>
+  </section>
+</div>
+{% endblock %}

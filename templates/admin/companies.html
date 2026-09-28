@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<div class="container"><div class="page-head"><span class="eyebrow">Admin · Company hub</span><h1>Companies</h1></div><div class="grid">{% for c in companies %}<div class="card"><div class="company-logo">{{c.name[:1]}}</div><h3>{{c.name}}</h3><p class="muted">{{c.pattern}}</p></div>{% endfor %}</div></div>{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ cfg.title }} — Admin — PlacePrep{% endblock %}
+{% block content %}
+<div class="container admin-shell">
+  <div class="admin-manager-top">
+    <div><a class="back-link" href="{{ url_for('admin.index') }}">← Admin Control Center</a><span class="eyebrow">ADMIN · CONTENT MANAGER</span><h1>{{ cfg.title }}</h1><p class="muted">Create, edit and delete records directly from your local PlacePrep database.</p></div>
+    <a class="btn btn-ghost" href="{{ url_for('admin.manage',resource=resource) }}">+ New {{ cfg.title[:-1] if cfg.title.endswith('s') else cfg.title }}</a>
+  </div>
+
+  <div class="admin-manager-grid">
+    <section class="card admin-form-card">
+      <div class="admin-form-title"><div><span class="eyebrow">{{ 'EDIT' if edit_obj else 'CREATE' }}</span><h2>{{ 'Edit item' if edit_obj else 'Add new item' }}</h2></div>{% if edit_obj %}<a href="{{ url_for('admin.manage',resource=resource) }}">Clear</a>{% endif %}</div>
+      <form method="post" action="{{ url_for('admin.edit_resource',resource=resource,item_id=edit_obj.id) if edit_obj else url_for('admin.manage',resource=resource) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% for field in cfg.fields %}
+          {% set name=field[0] %}{% set label=field[1] %}{% set ftype=field[2] %}{% set required=field[3] %}{% set extra=field[4:] %}
+          <label class="admin-label">{{ label }}{% if required %} <span>*</span>{% endif %}
+          {% if ftype == 'textarea' %}
+            <textarea class="input admin-textarea" name="{{ name }}" {% if required %}required{% endif %}>{{ _field_value(edit_obj,field) if edit_obj else '' }}</textarea>
+          {% elif ftype == 'select' %}
+            <select class="select" name="{{ name }}" {% if required %}required{% endif %}>{% for value,text in extra[0] %}<option value="{{ value }}" {% if edit_obj and _field_value(edit_obj,field)|string == value|string %}selected{% endif %}>{{ text }}</option>{% endfor %}</select>
+          {% elif ftype in ['relation','relation_unique'] %}
+            <select class="select" name="{{ name }}" {% if required %}required{% endif %}><option value="">— Select —</option>{% for value,text in relation_choices(extra[0]) %}<option value="{{ value }}" {% if edit_obj and _field_value(edit_obj,field)|string == value|string %}selected{% endif %}>{{ text }}</option>{% endfor %}</select>
+          {% elif ftype == 'checkbox' %}
+            <label class="check-row"><input type="checkbox" name="{{ name }}" {% if edit_obj and _field_value(edit_obj,field) %}checked{% elif not edit_obj and name in ['active','published'] %}checked{% endif %}> <span>Enabled</span></label>
+          {% else %}
+            <input class="input" type="{{ 'datetime-local' if ftype=='datetime' else ftype }}" name="{{ name }}" value="{{ _field_value(edit_obj,field) if edit_obj else '' }}" {% if required %}required{% endif %} {% if ftype=='password' and edit_obj %}placeholder="Leave blank to keep current password"{% endif %}>
+          {% endif %}
+          </label>
+        {% endfor %}
+        <button class="btn btn-primary admin-save" type="submit">{{ 'Save Changes' if edit_obj else 'Create' }}</button>
+      </form>
+    </section>
+
+    <section class="card admin-list-card">
+      <div class="admin-form-title"><div><span class="eyebrow">DATABASE</span><h2>{{ objects|length }} records</h2></div></div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr>{% for col in cfg.columns %}<th>{{ col.replace('_',' ')|title }}</th>{% endfor %}<th>Actions</th></tr></thead><tbody>
+      {% for obj in objects %}<tr>{% for col in cfg.columns %}<td>{{ _display_value(obj,col) }}</td>{% endfor %}<td class="admin-actions"><a class="btn btn-small" href="{{ url_for('admin.manage',resource=resource,edit=obj.id) }}">Edit</a><form method="post" action="{{ url_for('admin.delete_resource',resource=resource,item_id=obj.id) }}" onsubmit="return confirm('Delete this record permanently? This cannot be undone.');"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small btn-danger" type="submit">Delete</button></form></td></tr>{% else %}<tr><td colspan="{{ cfg.columns|length + 1 }}" class="muted">No records yet.</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+  </div>
+</div>
+{% endblock %}

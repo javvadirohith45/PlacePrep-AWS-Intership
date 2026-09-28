@@ -1,0 +1,630 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+    .register-page {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 20px;
+    }
+
+    .register-card {
+        width: 100%;
+        max-width: 850px;
+        padding: 38px;
+        border-radius: 24px;
+    }
+
+    .register-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .register-header h1 {
+        margin: 8px 0;
+    }
+
+    .register-header p {
+        margin: 0;
+    }
+
+    .form-section {
+        margin-top: 28px;
+    }
+
+    .form-section-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .form-group.full {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper .input {
+        width: 100%;
+        padding-right: 48px;
+        box-sizing: border-box;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px;
+        opacity: 0.7;
+        transition: 0.2s ease;
+    }
+
+    .password-toggle:hover {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.08);
+    }
+
+    .password-hint {
+        font-size: 12px;
+        opacity: 0.65;
+    }
+
+    .password-match {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .register-submit {
+        width: 100%;
+        margin-top: 30px;
+        padding: 14px 20px;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .required {
+        color: #ef4444;
+    }
+
+    @media (max-width: 700px) {
+        .register-page {
+            padding: 25px 15px;
+        }
+
+        .register-card {
+            padding: 25px 20px;
+            border-radius: 18px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group.full {
+            grid-column: auto;
+        }
+    }
+</style>
+
+
+<div class="register-page">
+
+    <form
+        class="register-card card"
+        method="post"
+        id="registerForm"
+    >
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <!-- Header -->
+        <div class="register-header">
+
+            <span class="eyebrow">
+                Start your journey
+            </span>
+
+            <h1>Create your PlacePrep account</h1>
+
+            <p class="muted">
+                Create your student profile and start preparing for placements.
+            </p>
+
+        </div>
+
+
+        <!-- Personal Information -->
+        <div class="form-section">
+
+            <div class="form-section-title">
+                👤 Personal Information
+            </div>
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+                    <label>
+                        Full Name <span class="required">*</span>
+                    </label>
+
+                    <input
+                        class="input"
+                        type="text"
+                        name="name"
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                        required
+                    >
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Email Address <span class="required">*</span>
+                    </label>
+
+                    <input
+                        class="input"
+                        type="email"
+                        name="email"
+                        placeholder="example@gmail.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Mobile Number <span class="required">*</span>
+                    </label>
+
+                    <input
+                        class="input"
+                        type="tel"
+                        name="phone"
+                        placeholder="10-digit mobile number"
+                        maxlength="10"
+                        inputmode="numeric"
+                        autocomplete="tel"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Education -->
+        <div class="form-section">
+
+            <div class="form-section-title">
+                🎓 Education Details
+            </div>
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+
+                    <label>
+                        College / University <span class="required">*</span>
+                    </label>
+
+                    <input
+                        class="input"
+                        type="text"
+                        name="college"
+                        placeholder="Enter your college or university"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Degree
+                    </label>
+
+                    <select
+                        class="input"
+                        name="degree"
+                    >
+
+                        <option value="">
+                            Select Degree
+                        </option>
+
+                        <option value="B.Tech">
+                            B.Tech
+                        </option>
+
+                        <option value="B.E">
+                            B.E
+                        </option>
+
+                        <option value="BCA">
+                            BCA
+                        </option>
+
+                        <option value="B.Sc">
+                            B.Sc
+                        </option>
+
+                        <option value="M.Tech">
+                            M.Tech
+                        </option>
+
+                        <option value="MCA">
+                            MCA
+                        </option>
+
+                        <option value="M.Sc">
+                            M.Sc
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Branch / Specialization
+                    </label>
+
+                    <input
+                        class="input"
+                        type="text"
+                        name="branch"
+                        placeholder="e.g. Information Technology"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Current Year
+                    </label>
+
+                    <select
+                        class="input"
+                        name="current_year"
+                    >
+
+                        <option value="">
+                            Select Year
+                        </option>
+
+                        <option value="1st Year">
+                            1st Year
+                        </option>
+
+                        <option value="2nd Year">
+                            2nd Year
+                        </option>
+
+                        <option value="3rd Year">
+                            3rd Year
+                        </option>
+
+                        <option value="4th Year">
+                            4th Year
+                        </option>
+
+                        <option value="Post Graduation">
+                            Post Graduation
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        CGPA / Percentage
+                    </label>
+
+                    <input
+                        class="input"
+                        type="text"
+                        name="cgpa"
+                        placeholder="e.g. 8.25 or 82%"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Graduation Year
+                    </label>
+
+                    <input
+                        class="input"
+                        type="number"
+                        name="graduation_year"
+                        placeholder="e.g. 2027"
+                        min="2020"
+                        max="2050"
+                    >
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Security -->
+        <div class="form-section">
+
+            <div class="form-section-title">
+                🔐 Account Security
+            </div>
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label>
+                        Password <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <input
+                            class="input"
+                            type="password"
+                            name="password"
+                            id="password"
+                            placeholder="Create a password"
+                            minlength="6"
+                            autocomplete="new-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('password', this)"
+                            aria-label="Show password"
+                        >
+                            👁️
+                        </button>
+
+                    </div>
+
+                    <span class="password-hint">
+                        Minimum 6 characters
+                    </span>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Confirm Password <span class="required">*</span>
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <input
+                            class="input"
+                            type="password"
+                            name="confirm_password"
+                            id="confirm_password"
+                            placeholder="Confirm your password"
+                            minlength="6"
+                            autocomplete="new-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('confirm_password', this)"
+                            aria-label="Show password"
+                        >
+                            👁️
+                        </button>
+
+                    </div>
+
+                    <span
+                        class="password-match"
+                        id="passwordMatch"
+                    ></span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Submit -->
+        <button
+            type="submit"
+            class="btn btn-primary register-submit"
+        >
+            Create Account →
+        </button>
+
+
+        <p class="muted login-link">
+
+            Already have an account?
+
+            <a href="{{ url_for('auth.login') }}">
+                Sign in
+            </a>
+
+        </p>
+
+    </form>
+
+</div>
+
+
+<script>
+
+function togglePassword(inputId, button) {
+
+    const input = document.getElementById(inputId);
+
+    if (input.type === "password") {
+
+        input.type = "text";
+
+        button.textContent = "🙈";
+
+        button.setAttribute(
+            "aria-label",
+            "Hide password"
+        );
+
+    } else {
+
+        input.type = "password";
+
+        button.textContent = "👁️";
+
+        button.setAttribute(
+            "aria-label",
+            "Show password"
+        );
+    }
+}
+
+
+const password =
+    document.getElementById("password");
+
+const confirmPassword =
+    document.getElementById("confirm_password");
+
+const passwordMatch =
+    document.getElementById("passwordMatch");
+
+
+function checkPasswordMatch() {
+
+    if (!confirmPassword.value) {
+
+        passwordMatch.textContent = "";
+
+        confirmPassword.setCustomValidity("");
+
+        return;
+    }
+
+    if (password.value !== confirmPassword.value) {
+
+        passwordMatch.textContent =
+            "Passwords do not match.";
+
+        passwordMatch.style.color =
+            "#ef4444";
+
+        confirmPassword.setCustomValidity(
+            "Passwords do not match."
+        );
+
+    } else {
+
+        passwordMatch.textContent =
+            "✓ Passwords match";
+
+        passwordMatch.style.color =
+            "#22c55e";
+
+        confirmPassword.setCustomValidity("");
+
+    }
+}
+
+
+password.addEventListener(
+    "input",
+    checkPasswordMatch
+);
+
+confirmPassword.addEventListener(
+    "input",
+    checkPasswordMatch
+);
+
+
+document
+    .getElementById("registerForm")
+    .addEventListener("submit", function(event) {
+
+        checkPasswordMatch();
+
+        if (!this.checkValidity()) {
+
+            event.preventDefault();
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}

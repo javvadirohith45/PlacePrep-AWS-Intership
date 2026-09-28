@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="exam-shell">
+  <div class="exam-top">
+    <div class="exam-title-wrap">
+      <strong>{{test.title}}</strong>
+      <small class="muted"> · {{test.category }}</small>
+    </div>
+    <div class="exam-top-actions">
+      <div class="exam-progress" id="examProgress">1 / {{items|length}}</div>
+      <div class="timer" id="timer" data-minutes="{{test.duration_minutes}}">{{'%02d'|format(test.duration_minutes)}}:00</div>
+      <button type="button" class="btn btn-danger" id="headerSubmit">Submit Test</button>
+    </div>
+  </div>
+
+  <div class="exam-body">
+    <section class="question-panel">
+      {% for item in items %}
+      <article class="exam-q" data-qid="{{item.question.id}}" data-index="{{loop.index0}}" style="display:{% if loop.first %}block{% else %}none{% endif %}">
+        <div class="question-meta">
+          <span class="tag">Question {{loop.index}} / {{items|length}}</span>
+          <span class="tag">{{item.question.difficulty}}</span>
+        </div>
+        <h2>{{item.question.question}}</h2>
+
+        <div class="exam-options" role="radiogroup" aria-label="Answer options for question {{loop.index}}">
+          {% for o in item.question.options %}
+          <label class="option exam-option" data-answer="{{o.label}}">
+            <input type="radio" name="question-{{item.question.id}}" value="{{o.label}}" aria-label="Option {{o.label}}">
+            <span class="option-letter">{{o.label}}</span>
+            <span class="option-copy">{{o.text}}</span>
+            <span class="option-check" aria-hidden="true"><i data-lucide="check"></i></span>
+          </label>
+          {% endfor %}
+        </div>
+
+        <div class="exam-controls">
+          <button type="button" class="btn btn-ghost prev">← Previous</button>
+          <div class="exam-control-right">
+            <button type="button" class="btn btn-ghost review">Mark for review</button>
+            <button type="button" class="btn btn-primary next">{% if loop.last %}Submit Test{% else %}Save & Next →{% endif %}</button>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+
+      <form id="submitForm" method="post" action="{{url_for('mock.submit',attempt_id=attempt.id)}}">
+        <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+      </form>
+    </section>
+
+    <aside class="palette">
+      <div class="palette-head">
+        <div>
+          <h3>Question palette</h3>
+          <p class="muted">Track answered and unanswered questions.</p>
+        </div>
+      </div>
+      <div class="palette-grid">
+        {% for item in items %}
+        <button type="button" class="pal" data-index="{{loop.index0}}" aria-label="Go to question {{loop.index}}">{{loop.index}}</button>
+        {% endfor %}
+      </div>
+      <div class="palette-legend">
+        <span><i class="legend-dot answered"></i> Answered</span>
+        <span><i class="legend-dot current"></i> Current</span>
+        <span><i class="legend-dot unanswered"></i> Unanswered</span>
+      </div>
+      <div class="exam-submit-card">
+        <strong>Ready to finish?</strong>
+        <p class="muted">You can submit at any time. Unanswered questions will be counted as skipped.</p>
+        <button type="button" class="btn btn-primary" id="sideSubmit">Submit Test</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(function(){
+  const qs=[...document.querySelectorAll('.exam-q')];
+  const pals=[...document.querySelectorAll('.pal')];
+  const progress=document.getElementById('examProgress');
+  const form=document.getElementById('submitForm');
+  const csrf=document.querySelector('meta[name=csrf-token]').content;
+  let i=0;
+  const storageKey='pp-attempt-{{attempt.id}}';
+  const answers=JSON.parse(sessionStorage.getItem(storageKey)||'{}');
+
+  function saveLocal(){ sessionStorage.setItem(storageKey,JSON.stringify(answers)); }
+
+  function paintSelection(q){
+    const selected=answers[q.dataset.qid] || '';
+    q.querySelectorAll('.exam-option').forEach(o=>{
+      const active=o.dataset.answer===selected;
+      o.classList.toggle('selected',active);
+      const radio=o.querySelector('input');
+      if(radio) radio.checked=active;
+    });
+  }
+
+  function show(n){
+    i=Math.max(0,Math.min(qs.length-1,n));
+    qs.forEach((q,k)=>q.style.display=k===i?'block':'none');
+    pals.forEach((p,k)=>{
+      p.classList.toggle('answered',!!answers[qs[k].dataset.qid]);
+      p.classList.toggle('current',k===i);
+    });
+    progress.textContent=(i+1)+' / '+qs.length;
+    paintSelection(qs[i]);
+  }
+
+  document.querySelectorAll('.exam-option').forEach(option=>{
+    option.addEventListener('click',()=>{
+      const q=option.closest('.exam-q');
+      const qid=q.dataset.qid;
+      const answer=option.dataset.answer;
+      answers[qid]=answer;
+      saveLocal();
+      paintSelection(q);
+      const pal=pals[Number(q.dataset.index)];
+      if(pal) pal.classList.add('answered');
+      fetch('{{url_for('mock.save',attempt_id=attempt.id)}}',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify({question_id:qid,answer:answer})
+      }).catch(()=>{});
+    });
+  });
+
+  document.querySelectorAll('.next').forEach(button=>button.addEventListener('click',()=>{
+    if(i<qs.length-1) show(i+1); else submitTest();
+  }));
+  document.querySelectorAll('.prev').forEach(button=>button.addEventListener('click',()=>show(i-1)));
+  pals.forEach(p=>p.addEventListener('click',()=>show(Number(p.dataset.index))));
+
+  function submitTest(){
+    if(confirm('Submit this test now? You will not be able to change your answers after submission.')) form.submit();
+  }
+  document.getElementById('headerSubmit').addEventListener('click',submitTest);
+  document.getElementById('sideSubmit').addEventListener('click',submitTest);
+
+  let s={{remaining_seconds}};
+  function tick(){
+    s=Math.max(0,s-1);
+    const m=Math.floor(s/60),r=s%60,t=document.getElementById('timer');
+    t.textContent=String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
+    if(s<=60)t.classList.add('warning');
+    if(s===0)form.submit();
+  }
+  show(0);
+  setInterval(tick,1000);
+  if(window.lucide) lucide.createIcons();
+})();
+</script>
+{% endblock %}
